@@ -237,12 +237,16 @@ export async function generateAssistantResponse(
     console.debug('Server call notice, using local handler:', err);
   }
 
-  // Default response
+  // Default intelligent Jyotish fallback (works 100% on static hosts like GitHub Pages)
   if (chartData) {
-    return { text: chartData.readingText, chartData, isAstrology: true };
+    return {
+      text: `Based on your ${chartData.lagna.formatted} Lagna and ${chartData.moon.sign} Moon sign, you can ask me specifically about your marriage timing, love versus arranged marriage possibilities, future spouse's personality, job versus business success, or settling in India versus abroad.`,
+      chartData,
+      isAstrology: true,
+    };
   }
   return {
-    text: "I am ready to guide you through your Vedic astrology questions regarding marriage, career, and life settlement. Please share your birth date, time, and place to begin.",
-    isAstrology: false,
+    text: "Namaste! I am your Vedic astrologer. To construct your Kundali and give you detailed insights on marriage, career, and life settlement, please share your date, time, and place of birth.",
+    isAstrology: true,
   };
 }

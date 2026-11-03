@@ -91,7 +91,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </p>
 
             <a
-              href="/api/download-base-v1"
+              href="./voice-astrologer-base-v1.zip"
               download="voice-astrologer-base-v1.zip"
               className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 hover:border-neutral-700 text-xs font-medium text-neutral-200 transition-colors"
             >
