@@ -41,3 +41,294 @@
 .pt-safe {
   padding-top: env(safe-area-inset-top, 16px);
 }
+
+/* Expressive Flat Minimal Orb Animations */
+
+/* 1. Normal State: Calm resting breath */
+@keyframes orb-breathe {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.015);
+  }
+}
+
+/* 2. Eye Blinking: Natural, organic blink cycle (single and double-blinks) */
+@keyframes eye-blink {
+  0%, 86%, 91%, 95%, 100% {
+    transform: scaleY(1);
+  }
+  88% {
+    transform: scaleY(0.08);
+  }
+  89.5% {
+    transform: scaleY(0.08);
+  }
+  93% {
+    transform: scaleY(0.12);
+  }
+}
+
+/* 3. Listening State: Active listening head movement (attentive tilt, ear-cocking, leaning in) */
+@keyframes orb-listening-head {
+  0% {
+    transform: translateY(-2px) rotate(-3.5deg) scale(1.02);
+  }
+  25% {
+    transform: translateY(-5px) rotate(-1.5deg) scale(1.03);
+  }
+  50% {
+    transform: translateY(-2px) rotate(3deg) scale(1.02);
+  }
+  75% {
+    transform: translateY(-4px) rotate(1.2deg) scale(1.035);
+  }
+  100% {
+    transform: translateY(-2px) rotate(-3.5deg) scale(1.02);
+  }
+}
+
+/* 4. Nodding State: Unmistakable, affirmative vertical agreement nod ("Yes, I understand!") */
+@keyframes orb-affirmative-nod {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  16% {
+    transform: translateY(14px) rotate(0.5deg);
+  }
+  32% {
+    transform: translateY(-4px) rotate(-0.5deg);
+  }
+  50% {
+    transform: translateY(11px) rotate(0.5deg);
+  }
+  68% {
+    transform: translateY(-2px) rotate(0deg);
+  }
+  84% {
+    transform: translateY(4px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+/* 5. Speaking State: Lively vocal cadence & conversational speech bobbing */
+@keyframes orb-speaking-cadence {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translateY(-5px) rotate(-1.5deg) scale(1.02);
+  }
+  40% {
+    transform: translateY(3px) rotate(1.2deg) scale(0.995);
+  }
+  60% {
+    transform: translateY(-4px) rotate(1.8deg) scale(1.02);
+  }
+  80% {
+    transform: translateY(2px) rotate(-0.8deg) scale(1.01);
+  }
+}
+
+/* 6. Thinking State: Completely steady circle position */
+@keyframes orb-thinking-float {
+  0%, 100% {
+    transform: none;
+  }
+}
+
+/* 7. Error State: Distressed vibration */
+@keyframes orb-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 1px); }
+  40% { transform: translate(3px, -1px); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(2px, 1px); }
+}
+
+/* Wave motion for loading capsule bars */
+@keyframes bar-wave-left {
+  0%, 100% {
+    transform: scaleY(0.75);
+  }
+  50% {
+    transform: scaleY(1.25);
+  }
+}
+
+@keyframes bar-wave-right {
+  0%, 100% {
+    transform: scaleY(1.25);
+  }
+  50% {
+    transform: scaleY(0.75);
+  }
+}
+
+/* CSS Classes */
+.animate-orb-breathe {
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+.animate-orb-listening {
+  animation: orb-listening-head 4s ease-in-out infinite;
+}
+
+.animate-orb-nod {
+  animation: orb-affirmative-nod 1.3s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.animate-orb-speaking {
+  animation: orb-speaking-cadence 1.4s ease-in-out infinite;
+}
+
+.animate-orb-thinking {
+  animation: orb-thinking-float 3s ease-in-out infinite;
+}
+
+.animate-orb-jitter {
+  animation: orb-jitter 0.35s ease-in-out infinite;
+}
+
+.animate-eye-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: eye-blink 4.2s ease-in-out infinite;
+}
+
+.animate-eye-blink-listening {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: eye-blink 4.2s ease-in-out infinite;
+}
+
+/* Thinking State: Gaze movement shifting eyes up and sideways in contemplation */
+@keyframes eye-thinking-gaze {
+  0%, 100% {
+    transform: translate(0px, 0px);
+  }
+  18% {
+    transform: translate(8px, -11px);
+  }
+  42% {
+    transform: translate(10px, -13px);
+  }
+  62% {
+    transform: translate(-5px, -9px);
+  }
+  82% {
+    transform: translate(6px, -7px);
+  }
+}
+
+.animate-thinking-gaze {
+  animation: eye-thinking-gaze 4.5s ease-in-out infinite;
+}
+
+/* Happy Eyes Joyful Pulse */
+@keyframes happy-bounce {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+  }
+}
+
+/* 1. Listening: Eyes get bigger and smaller strictly along vertical lines as user speaks */
+@keyframes eye-vertical-monologue {
+  0%, 100% {
+    transform: scaleY(0.7) scaleX(0.98);
+  }
+  25% {
+    transform: scaleY(1.38) scaleX(1.02);
+  }
+  50% {
+    transform: scaleY(0.76) scaleX(0.97);
+  }
+  75% {
+    transform: scaleY(1.44) scaleX(1.02);
+  }
+}
+
+.animate-eye-vertical-monologue {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: eye-vertical-monologue 1.85s ease-in-out infinite;
+}
+
+/* 2. Processing: Blue part rotates continuously in a circle */
+@keyframes orb-rotate-circle {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orb-rotate {
+  transform-box: fill-box;
+  transform-origin: 150px 150px;
+  animation: orb-rotate-circle 4.5s linear infinite;
+}
+
+/* 3. Thinking / Processing State: Eyes smoothly glide left and right */
+@keyframes eyes-scan-left-right {
+  0% {
+    transform: translateX(0px);
+  }
+  25% {
+    transform: translateX(-16px);
+  }
+  50% {
+    transform: translateX(0px);
+  }
+  75% {
+    transform: translateX(16px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+.animate-eyes-scan,
+.animate-thinking-eyes-horizontal {
+  animation: eyes-scan-left-right 2.4s ease-in-out infinite;
+}
+
+/* 4. Idle subtle glance looking around */
+@keyframes eye-idle-glance {
+  0%, 75%, 100% {
+    transform: translate(0px, 0px);
+  }
+  82% {
+    transform: translate(6px, -2px);
+  }
+  92% {
+    transform: translate(6px, -2px);
+  }
+}
+
+.animate-idle-glance {
+  animation: eye-idle-glance 7s ease-in-out infinite;
+}
+
+.animate-bar-wave-l {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bar-wave-left 1.4s ease-in-out infinite;
+}
+
+.animate-bar-wave-r {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bar-wave-right 1.4s ease-in-out infinite;
+}
+
+
+
+

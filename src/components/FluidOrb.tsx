@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
+export type OrbState = 'idle' | 'listening' | 'nodding' | 'thinking' | 'speaking';
 
 interface FluidOrbProps {
   state: OrbState;

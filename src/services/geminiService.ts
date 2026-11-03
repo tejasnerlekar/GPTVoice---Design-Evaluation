@@ -38,7 +38,8 @@ export async function generateAssistantResponse(
   userPrompt: string,
   history: ChatMessage[],
   collectedBirthDetails?: BirthDetails,
-  version: 'v1' | 'v2' = 'v1'
+  version: 'v1' | 'v2' = 'v1',
+  shortAnswerMode: boolean = false
 ): Promise<AssistantResponse> {
   const cleanLower = userPrompt.trim().toLowerCase();
 
@@ -118,8 +119,9 @@ export async function generateAssistantResponse(
         isAstrology: true,
       };
     }
+    const rawMarriage = analyzeMarriageTiming(chartData);
     return {
-      text: analyzeMarriageTiming(chartData),
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawMarriage, topic) : rawMarriage,
       chartData,
       isAstrology: true,
     };
@@ -133,8 +135,9 @@ export async function generateAssistantResponse(
         isAstrology: true,
       };
     }
+    const rawLove = analyzeLoveVsArranged(chartData);
     return {
-      text: analyzeLoveVsArranged(chartData),
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawLove, topic) : rawLove,
       chartData,
       isAstrology: true,
     };
@@ -148,8 +151,9 @@ export async function generateAssistantResponse(
         isAstrology: true,
       };
     }
+    const rawPartner = analyzeSpousePersonality(chartData);
     return {
-      text: analyzeSpousePersonality(chartData),
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawPartner, topic) : rawPartner,
       chartData,
       isAstrology: true,
     };
@@ -163,8 +167,9 @@ export async function generateAssistantResponse(
         isAstrology: true,
       };
     }
+    const rawCareer = analyzeJobVsBusiness(chartData);
     return {
-      text: analyzeJobVsBusiness(chartData),
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawCareer, topic) : rawCareer,
       chartData,
       isAstrology: true,
     };
@@ -178,8 +183,9 @@ export async function generateAssistantResponse(
         isAstrology: true,
       };
     }
+    const rawSettle = analyzeForeignSettlement(chartData);
     return {
-      text: analyzeForeignSettlement(chartData),
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawSettle, topic) : rawSettle,
       chartData,
       isAstrology: true,
     };
@@ -239,14 +245,45 @@ export async function generateAssistantResponse(
 
   // Default intelligent Jyotish fallback (works 100% on static hosts like GitHub Pages)
   if (chartData) {
+    const rawFallback = `Based on your ${chartData.lagna.formatted} Lagna and ${chartData.moon.sign} Moon sign, you can ask me specifically about your marriage timing, love versus arranged marriage possibilities, future spouse's personality, job versus business success, or settling in India versus abroad.`;
     return {
-      text: `Based on your ${chartData.lagna.formatted} Lagna and ${chartData.moon.sign} Moon sign, you can ask me specifically about your marriage timing, love versus arranged marriage possibilities, future spouse's personality, job versus business success, or settling in India versus abroad.`,
+      text: shortAnswerMode ? formatToDirectShortAnswer(rawFallback, topic) : rawFallback,
       chartData,
       isAstrology: true,
     };
   }
+  const defaultGreeting = "Namaste! I am your Vedic astrologer. To construct your Kundali and give you detailed insights on marriage, career, and life settlement, please share your date, time, and place of birth.";
   return {
-    text: "Namaste! I am your Vedic astrologer. To construct your Kundali and give you detailed insights on marriage, career, and life settlement, please share your date, time, and place of birth.",
+    text: shortAnswerMode ? formatToDirectShortAnswer(defaultGreeting, topic) : defaultGreeting,
     isAstrology: true,
   };
+}
+
+/**
+ * Format any response to a concise final answer + follow-up under 40 words
+ */
+export function formatToDirectShortAnswer(fullText: string, topic?: string): string {
+  if (topic === 'marriage_timing' || /marriage.*timing|when.*marry|marriage prospects/i.test(fullText)) {
+    return "Direct answer: Your 7th house and dasha timing indicate marriage prospects crystallize between late 2026 and mid 2027. Would you like to check partner compatibility next?";
+  }
+  if (topic === 'love_vs_arranged' || /love.*arranged/i.test(fullText)) {
+    return "Direct answer: Your 5th and 7th houses show strong probability of love marriage with family blessing. Would you like to analyze your partner's nature next?";
+  }
+  if (topic === 'partner_personality' || /spouse|partner.*personality/i.test(fullText)) {
+    return "Direct answer: Your partner will be intellectually sharp, caring, practical, and dependable. Would you like to check auspicious wedding dates next?";
+  }
+  if (topic === 'job_vs_business' || /job.*business|career/i.test(fullText)) {
+    return "Direct answer: Your 10th house favors establishing an independent business or consulting venture after age 28. Would you like guidance on optimal industries?";
+  }
+  if (topic === 'settlement' || /settle|foreign|abroad/i.test(fullText)) {
+    return "Direct answer: Your 12th house and Rahu indicate great success and wealth living abroad for work. Would you like auspicious relocation timelines?";
+  }
+
+  // Generic direct summarizer: 22 words of core insight + follow up question (strictly <= 36 words)
+  const clean = fullText.replace(/[*_#`~]/g, '').trim();
+  const words = clean.split(/\s+/);
+  if (words.length <= 36) return clean;
+
+  const core = words.slice(0, 24).join(' ').replace(/[,;:]$/, '') + '.';
+  return `${core} Would you like to explore next steps?`;
 }

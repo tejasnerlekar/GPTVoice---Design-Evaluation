@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <radialGradient id="orbGradNormal" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#bfdbfe" />
+      <stop offset="35%" stop-color="#60a5fa" />
+      <stop offset="70%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </radialGradient>
+  </defs>
+
+  <!-- Clean Flat Minimal Blue Circular Orb -->
+  <circle cx="150" cy="150" r="110" fill="url(#orbGradNormal)" />
+
+  <!-- Two Centered Navy Vertical Capsule Bars: Normal / Resting State -->
+  <g fill="#0f172a">
+    <rect x="126" y="126" width="14" height="48" rx="7" />
+    <rect x="160" y="126" width="14" height="48" rx="7" />
+  </g>
+</svg>

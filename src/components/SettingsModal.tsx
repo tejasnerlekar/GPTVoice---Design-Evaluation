@@ -68,7 +68,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <span className="text-xs font-bold text-neutral-100">Version 1 (V1)</span>
                 <span className="text-[10px] text-neutral-400 mt-0.5">
-                  Baseline authentic Vedic Jyotish flow (50–250 words)
+                  Control baseline with ChatGPT-style fluid canvas orb
                 </span>
               </button>
               <button
@@ -82,7 +82,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <span className="text-xs font-bold text-neutral-100">Version 2 (V2)</span>
                 <span className="text-[10px] text-neutral-400 mt-0.5">
-                  Intervention version for comparative testing
+                  Intervention test with expressive flat minimal animated orb
                 </span>
               </button>
             </div>

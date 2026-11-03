@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { OrbState } from '../components/FluidOrb';
+import { playPing, setSharedAudioContext } from '../utils/soundEffects';
 
 interface IWindow extends Window {
   SpeechRecognition?: any;
@@ -18,7 +19,8 @@ export function useVoiceChat({
   const [interimTranscript, setInterimTranscript] = useState<string>('');
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [speechRate, setSpeechRate] = useState<number>(1.05);
+  const [speechRate, setSpeechRate] = useState<number>(1.0);
+  const speechRateRef = useRef<number>(1.0);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
@@ -26,6 +28,9 @@ export function useVoiceChat({
   const isMutedRef = useRef<boolean>(false);
   const isSpeakingRef = useRef<boolean>(false);
   const speakingTextRef = useRef<string>('');
+  const currentRawSpeakingTextRef = useRef<string>('');
+  const currentSpeechCharIndexRef = useRef<number>(0);
+  const [currentSpeakingText, setCurrentSpeakingText] = useState<string>('');
   const isProcessingRef = useRef<boolean>(false);
   const hasMicPermissionRef = useRef<boolean | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -105,7 +110,7 @@ export function useVoiceChat({
         recognitionRef.current.start();
         setIsListening(true);
         if (!isSpeakingRef.current && !isProcessingRef.current) {
-          setOrbState('listening');
+          setOrbState('idle');
         }
       } catch (err: any) {
         if (err.name === 'InvalidStateError') {
@@ -119,10 +124,17 @@ export function useVoiceChat({
   const commitTranscript = useCallback(() => {
     const fullUtterance = transcriptBufferRef.current.trim();
     if (fullUtterance && !isProcessingRef.current) {
+      playPing('finished_listening');
       transcriptBufferRef.current = '';
       setInterimTranscript('');
       isProcessingRef.current = true;
-      setOrbState('thinking');
+      // Affirmative nod acknowledging user input before thinking
+      setOrbState('nodding');
+      setTimeout(() => {
+        if (isProcessingRef.current) {
+          setOrbState('thinking');
+        }
+      }, 1100);
       onUserSpeechFinalRef.current(fullUtterance);
     }
   }, []);
@@ -154,6 +166,12 @@ export function useVoiceChat({
     recognition.onstart = () => {
       setIsListening(true);
       if (!isSpeakingRef.current && !isProcessingRef.current) {
+        setOrbState('idle');
+      }
+    };
+
+    recognition.onspeechstart = () => {
+      if (!isSpeakingRef.current && !isProcessingRef.current && !isMutedRef.current) {
         setOrbState('listening');
       }
     };
@@ -181,6 +199,11 @@ export function useVoiceChat({
       const rawIncoming = (cleanFinal + ' ' + cleanInterim).trim();
 
       if (!rawIncoming) return;
+
+      // User has started speaking: activate listening monologue phase!
+      if (!isSpeakingRef.current && !isProcessingRef.current && !isMutedRef.current) {
+        setOrbState('listening');
+      }
 
       if (cleanFinal) {
         transcriptBufferRef.current = (transcriptBufferRef.current + ' ' + cleanFinal).trim();
@@ -234,8 +257,11 @@ export function useVoiceChat({
       if (!audioContextRef.current && AudioCtx) {
         audioContextRef.current = new AudioCtx();
       }
-      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-        await audioContextRef.current.resume();
+      if (audioContextRef.current) {
+        setSharedAudioContext(audioContextRef.current);
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -310,11 +336,14 @@ export function useVoiceChat({
     isSpeakingRef.current = false;
     isProcessingRef.current = false;
     speakingTextRef.current = '';
+    currentRawSpeakingTextRef.current = '';
+    currentSpeechCharIndexRef.current = 0;
+    setCurrentSpeakingText('');
     transcriptBufferRef.current = '';
     clearTimeout(silenceTimerRef.current);
     clearInterval(ttsIntervalRef.current);
     setAudioLevel(0);
-    setOrbState(isMutedRef.current ? 'idle' : 'listening');
+    setOrbState('idle');
     restartListening();
   }, [restartListening]);
 
@@ -333,7 +362,7 @@ export function useVoiceChat({
         setOrbState('idle');
       } else {
         restartListening();
-        setOrbState('listening');
+        setOrbState('idle');
       }
       return next;
     });
@@ -341,7 +370,7 @@ export function useVoiceChat({
 
   // Single voice synthesizer authority with strict acoustic echo protection
   const speakText = useCallback(
-    (text: string, onDone?: () => void) => {
+    (text: string, onDone?: () => void, forceRate?: number) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
         isProcessingRef.current = false;
         speakingTextRef.current = '';
@@ -379,7 +408,11 @@ export function useVoiceChat({
       setOrbState('speaking');
       isSpeakingRef.current = true;
       speakingTextRef.current = cleanText.toLowerCase();
+      currentRawSpeakingTextRef.current = cleanText;
+      currentSpeechCharIndexRef.current = 0;
+      setCurrentSpeakingText(cleanText);
       isProcessingRef.current = false;
+      playPing('start_answering');
 
       // Organic orb pulsing to speech rhythm
       let step = 0;
@@ -396,16 +429,28 @@ export function useVoiceChat({
       if (voiceToUse) {
         utterance.voice = voiceToUse;
       }
-      utterance.rate = speechRate;
+      const rateToUse = forceRate ?? speechRateRef.current ?? 1.0;
+      utterance.rate = rateToUse;
       utterance.pitch = 1.0;
 
+      // Track speech progress boundary so fast-forward can continue seamlessly from current word
+      utterance.onboundary = (e: any) => {
+        if (typeof e.charIndex === 'number') {
+          currentSpeechCharIndexRef.current = e.charIndex;
+        }
+      };
+
       const finishSpeech = () => {
+        playPing('end_answering');
         isSpeakingRef.current = false;
         isProcessingRef.current = false;
         speakingTextRef.current = '';
+        currentRawSpeakingTextRef.current = '';
+        currentSpeechCharIndexRef.current = 0;
+        setCurrentSpeakingText('');
         clearInterval(ttsIntervalRef.current);
         setAudioLevel(0);
-        setOrbState(isMutedRef.current ? 'idle' : 'listening');
+        setOrbState('idle');
 
         // Post-speech echo shield cooldown: wait 450ms for room audio reverberations to dissipate
         clearTimeout(echoCooldownTimerRef.current);
@@ -424,8 +469,14 @@ export function useVoiceChat({
       // Trigger single authoritative speech
       window.speechSynthesis.speak(utterance);
     },
-    [restartListening, selectedVoice, speechRate]
+    [restartListening, selectedVoice]
   );
+
+  // Reset speech rate to 1x by default for every new answer
+  const resetSpeechRate = useCallback(() => {
+    speechRateRef.current = 1.0;
+    setSpeechRate(1.0);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -452,6 +503,80 @@ export function useVoiceChat({
     };
   }, []);
 
+  // Fast forward playback rate (cycles 1x -> 1.5x -> 2x -> 1x)
+  // Continues the exact same answer from current word without starting over!
+  const fastForward = useCallback(() => {
+    const current = speechRateRef.current;
+    let nextRate = 1.0;
+    if (current < 1.25) {
+      nextRate = 1.5;
+    } else if (current < 1.75) {
+      nextRate = 2.0;
+    } else {
+      nextRate = 1.0;
+    }
+
+    speechRateRef.current = nextRate;
+    setSpeechRate(nextRate);
+
+    // If currently speaking, continue the ongoing answer from current position
+    if (
+      isSpeakingRef.current &&
+      currentRawSpeakingTextRef.current &&
+      typeof window !== 'undefined' &&
+      window.speechSynthesis
+    ) {
+      window.speechSynthesis.cancel();
+      const fullText = currentRawSpeakingTextRef.current;
+      const charIdx = currentSpeechCharIndexRef.current;
+      const remainingText = fullText.slice(charIdx).trim() || fullText;
+
+      const utterance = new SpeechSynthesisUtterance(remainingText);
+      const voiceToUse = selectedVoiceRef.current || selectedVoice;
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
+      }
+      utterance.rate = nextRate;
+      utterance.pitch = 1.0;
+      utterance.onboundary = (e: any) => {
+        if (typeof e.charIndex === 'number') {
+          currentSpeechCharIndexRef.current = charIdx + e.charIndex;
+        }
+      };
+      utterance.onend = () => {
+        playPing('end_answering');
+        isSpeakingRef.current = false;
+        isProcessingRef.current = false;
+        speakingTextRef.current = '';
+        currentRawSpeakingTextRef.current = '';
+        currentSpeechCharIndexRef.current = 0;
+        setCurrentSpeakingText('');
+        clearInterval(ttsIntervalRef.current);
+        setAudioLevel(0);
+        setOrbState('idle');
+        clearTimeout(echoCooldownTimerRef.current);
+        echoCooldownTimerRef.current = setTimeout(() => {
+          if (!isSpeakingRef.current && !isProcessingRef.current && !isMutedRef.current) {
+            restartListening();
+          }
+        }, 450);
+      };
+      utterance.onerror = () => {
+        isSpeakingRef.current = false;
+        isProcessingRef.current = false;
+        speakingTextRef.current = '';
+        currentRawSpeakingTextRef.current = '';
+        currentSpeechCharIndexRef.current = 0;
+        setCurrentSpeakingText('');
+        clearInterval(ttsIntervalRef.current);
+        setAudioLevel(0);
+        setOrbState('idle');
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+    return nextRate;
+  }, [selectedVoice, restartListening]);
+
   return {
     orbState,
     setOrbState,
@@ -459,11 +584,14 @@ export function useVoiceChat({
     isMuted,
     isListening,
     interimTranscript,
+    currentSpeakingText,
     selectedVoice,
     setSelectedVoice,
     availableVoices,
     speechRate,
     setSpeechRate,
+    resetSpeechRate,
+    fastForward,
     hasMicPermission,
     permissionError,
     requestPermission,

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <radialGradient id="orbGradError" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#fed7aa" />
+      <stop offset="35%" stop-color="#f87171" />
+      <stop offset="70%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#7f1d1d" />
+    </radialGradient>
+  </defs>
+
+  <!-- Clean Flat Minimal Error Orb -->
+  <circle cx="150" cy="150" r="110" fill="url(#orbGradError)" />
+
+  <!-- Two Centered Navy Vertical Capsule Bars: Distressed / Error Angle -->
+  <g fill="#18181b">
+    <rect x="126" y="132" width="14" height="38" rx="7" transform="rotate(15 133 151)" />
+    <rect x="160" y="132" width="14" height="38" rx="7" transform="rotate(-15 167 151)" />
+  </g>
+</svg>
