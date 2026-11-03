@@ -1,0 +1,6 @@
+{
+  "name": "ChatGPT Voice Mode & Vedic Astrologer",
+  "description": "Real-time ChatGPT Advanced Voice Mode replica with organic fluid orb, live microphone audio visualizer, and authentic sub-15ms Vedic Astrologer engine ready for GitHub Pages.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
