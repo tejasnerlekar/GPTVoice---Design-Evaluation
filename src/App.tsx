@@ -20,7 +20,7 @@ import {
   formatToDirectShortAnswer,
 } from './services/geminiService';
 import { BirthDetails, VedicChartResult } from './services/vedicEngine';
-import { playPing } from './utils/soundEffects';
+import { playPing, setAudioFeedbackEnabled } from './utils/soundEffects';
 
 export default function App() {
   const [activeVersion, setActiveVersion] = useState<'v1' | 'v2'>(() => {
@@ -63,6 +63,7 @@ export default function App() {
 
   useEffect(() => {
     activeVersionRef.current = activeVersion;
+    setAudioFeedbackEnabled(activeVersion === 'v2');
   }, [activeVersion]);
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function App() {
   const handleVersionChange = (newVersion: 'v1' | 'v2') => {
     setActiveVersion(newVersion);
     activeVersionRef.current = newVersion;
+    setAudioFeedbackEnabled(newVersion === 'v2');
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.set('v', newVersion === 'v2' ? '2' : '1');
@@ -388,8 +390,8 @@ export default function App() {
               )}
             </div>
 
-            {/* Live speech transcription text (always shown clean & minimal) */}
-            {getStatusLabel() ? (
+            {/* Live speech transcription text (Version 2 only, removed from Version 1) */}
+            {activeVersion === 'v2' && getStatusLabel() ? (
               <div className="flex flex-col items-center text-center px-4 max-w-sm animate-in fade-in duration-150">
                 <p
                   className={`text-xs tracking-wide font-normal line-clamp-3 ${

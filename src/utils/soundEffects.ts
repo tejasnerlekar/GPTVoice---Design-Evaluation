@@ -7,6 +7,11 @@
 // Creates clear, pleasant chime/bell notification sounds with zero external audio assets.
 
 let sharedAudioCtx: AudioContext | null = null;
+let audioFeedbackEnabled = true;
+
+export function setAudioFeedbackEnabled(enabled: boolean): void {
+  audioFeedbackEnabled = enabled;
+}
 
 export function setSharedAudioContext(ctx: AudioContext): void {
   if (ctx) {
@@ -95,6 +100,7 @@ function executePing(ctx: AudioContext, type: PingType): void {
 }
 
 export function playPing(type: PingType): void {
+  if (!audioFeedbackEnabled) return;
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
